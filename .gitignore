@@ -1,0 +1,5 @@
+/vendor/
+/.env
+/logs/cron.log
+/public/uploads/*
+!public/uploads/.gitkeep
