@@ -25,7 +25,7 @@
    ```bash
    cp .env.sample .env
    ```
-   В `.env` пропишите доступы к БД, базовый URL и ключ OpenAI.
+   В `.env` пропишите доступы к БД, базовый URL и ключ OpenAI. При необходимости задайте `OPENAI_BASE_URL`, `OPENAI_RELAY_TOKEN` и параметры прокси (`OPENAI_PROXY`, `OPENAI_PROXY_AUTH`, `OPENAI_PROXY_TYPE`).
 4. Импортируйте структуру базы данных:
    ```bash
    mysql -u root -p project < database/schema.sql
@@ -92,7 +92,9 @@ server {
 
 ## Работа с OpenAI
 
-Ключ API берётся из `.env`. Генератор отправляет запрос к `gpt-3.5-turbo`, ожидая ответ в формате JSON с полями `title`, `meta_description`, `h1`, `lead`, `body`, `suggested_image_prompt`. При наличии описания изображения отправляется запрос на генерацию картинки (png) и сохраняется в `public/uploads`.
+Ключ API берётся из `.env`. По умолчанию запросы идут напрямую в `https://api.openai.com/v1`, но при необходимости можно указать собственный relay/прокси через `OPENAI_BASE_URL` и заголовок авторизации `OPENAI_RELAY_TOKEN`. Также доступны настройки прокси (`OPENAI_PROXY`, `OPENAI_PROXY_AUTH`, `OPENAI_PROXY_TYPE` — `http`, `https`, `socks4`, `socks5`).
+
+Генератор отправляет запрос к `gpt-3.5-turbo`, ожидая ответ в формате JSON с полями `title`, `meta_description`, `h1`, `lead`, `body`, `suggested_image_prompt`. При наличии описания изображения отправляется запрос на генерацию картинки (png) и сохраняется в `public/uploads`.
 
 ## Безопасность
 
