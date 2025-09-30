@@ -4,6 +4,11 @@ if (file_exists($autoload)) {
     require_once $autoload;
 }
 
+$legacyDbClass = __DIR__ . '/core/class.db.php';
+if (file_exists($legacyDbClass)) {
+    require_once $legacyDbClass;
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
