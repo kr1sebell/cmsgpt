@@ -3,3 +3,15 @@
 /logs/cron.log
 /public/uploads/*
 !public/uploads/.gitkeep
+# Created by .ignore support plugin (hsz.mobi)
+.idea/
+idea/
+idea
+.idea
+cgi-bin/
+images/news/
+images/tovars/preview/
+sours/
+thumbs/footer/
+thumbs/news/
+thumbs/tovars/
