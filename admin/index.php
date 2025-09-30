@@ -98,6 +98,119 @@ switch ($action) {
         Helpers::redirect('/admin/?action=edit_article&id=' . $articleId . '&saved=1');
         break;
 
+    case 'upload_media':
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            echo json_encode(array('error' => 'Метод не поддерживается'));
+            exit;
+        }
+        if (!Helpers::validateCsrf(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '')) {
+            http_response_code(400);
+            echo json_encode(array('error' => 'Неверный CSRF-токен'));
+            exit;
+        }
+        if (empty($_FILES['file']) || !isset($_FILES['file']['error']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            http_response_code(400);
+            echo json_encode(array('error' => 'Не удалось загрузить файл'));
+            exit;
+        }
+
+        $extension = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowedImages = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'svg');
+        $allowedVideos = array('mp4', 'webm', 'ogg');
+        $allowedFiles = array_merge($allowedImages, $allowedVideos, array('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar')); // расширенный список для менеджера
+
+        if (!in_array($extension, $allowedFiles, true)) {
+            http_response_code(400);
+            echo json_encode(array('error' => 'Недопустимый тип файла'));
+            exit;
+        }
+
+        $filename = str_replace('.', '', uniqid('media_', true)) . '.' . $extension;
+        $path = UPLOADS_PATH . '/' . $filename;
+
+        if (!move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
+            http_response_code(500);
+            echo json_encode(array('error' => 'Ошибка сохранения файла'));
+            exit;
+        }
+
+        $fileType = 'file';
+        if (in_array($extension, $allowedImages, true)) {
+            $fileType = 'image';
+        } elseif (in_array($extension, $allowedVideos, true)) {
+            $fileType = 'media';
+        }
+
+        $location = '/public/uploads/' . $filename;
+        echo json_encode(array(
+            'success' => true,
+            'location' => $location,
+            'name' => $filename,
+            'type' => $fileType
+        ));
+        exit;
+
+    case 'list_media':
+        header('Content-Type: application/json');
+        if (!Helpers::validateCsrf(isset($_GET['csrf_token']) ? $_GET['csrf_token'] : '')) {
+            http_response_code(400);
+            echo json_encode(array('error' => 'Неверный CSRF-токен'));
+            exit;
+        }
+
+        $requestedType = isset($_GET['type']) ? $_GET['type'] : 'all';
+        $allowedTypes = array('all', 'image', 'media', 'file');
+        if (!in_array($requestedType, $allowedTypes, true)) {
+            $requestedType = 'all';
+        }
+
+        $items = array();
+        if (is_dir(UPLOADS_PATH)) {
+            $files = scandir(UPLOADS_PATH);
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+                $fullPath = UPLOADS_PATH . '/' . $file;
+                if (!is_file($fullPath)) {
+                    continue;
+                }
+                $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                $type = 'file';
+                $imageExtensions = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'svg');
+                $videoExtensions = array('mp4', 'webm', 'ogg');
+                if (in_array($extension, $imageExtensions, true)) {
+                    $type = 'image';
+                } elseif (in_array($extension, $videoExtensions, true)) {
+                    $type = 'media';
+                }
+                if ($requestedType !== 'all' && $requestedType !== $type) {
+                    continue;
+                }
+
+                $items[] = array(
+                    'name' => $file,
+                    'url' => '/public/uploads/' . rawurlencode($file),
+                    'type' => $type,
+                    'size' => filesize($fullPath),
+                    'modified' => filemtime($fullPath)
+                );
+            }
+        }
+
+        usort($items, function ($a, $b) {
+            if ($a['modified'] === $b['modified']) {
+                return strcmp($a['name'], $b['name']);
+            }
+            return $a['modified'] < $b['modified'] ? 1 : -1;
+        });
+
+        echo json_encode(array('files' => $items));
+        exit;
+
     case 'generator':
         $message = isset($_GET['message']) ? $_GET['message'] : '';
         $topic = $topicService->nextInQueue();

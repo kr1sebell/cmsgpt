@@ -22,5 +22,7 @@
 <main class="container">
     <?= $content; ?>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="/public/js/admin-editor.js"></script>
 </body>
 </html>

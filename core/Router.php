@@ -29,7 +29,7 @@ class Router
                 $params = array();
                 foreach ($matches as $key => $value) {
                     if (!is_int($key)) {
-                        $params[$key] = $value;
+                        $params[$key] = rawurldecode($value);
                     }
                 }
                 return call_user_func($route['callback'], $params);

@@ -22,8 +22,8 @@
             <textarea id="lead" name="lead" rows="3" class="form-control" required><?= Helpers::e(isset($article['lead']) ? $article['lead'] : ''); ?></textarea>
         </div>
         <div class="form-group">
-            <label for="body">Текст (HTML)</label>
-            <textarea id="body" name="body" rows="12" class="form-control" required><?= isset($article['body']) ? Helpers::e($article['body']) : ''; ?></textarea>
+            <label for="body">Текст</label>
+            <textarea id="body" name="body" rows="12" class="form-control" data-upload-url="/admin/?action=upload_media" data-list-url="/admin/?action=list_media" required><?= isset($article['body']) ? $article['body'] : ''; ?></textarea>
         </div>
         <div class="form-group">
             <label for="image">Изображение</label>
