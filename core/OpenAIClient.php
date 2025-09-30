@@ -3,7 +3,8 @@
 class OpenAIClient
 {
     protected $apiKey;
-    protected $baseUrl = 'https://api.openai.com/v1';
+//    protected $baseUrl = 'https://api.openai.com/v1';
+    protected $baseUrl = 'https://quick-donkey-55.deno.dev';
 
     public function __construct($apiKey)
     {
@@ -19,8 +20,9 @@ class OpenAIClient
         $url = $this->baseUrl . $endpoint;
         $ch = curl_init($url);
         $headers = array(
-            'Authorization: Bearer ' . $this->apiKey,
-            'Content-Type: application/json'
+//            'Authorization: Bearer ' . $this->apiKey,
+            'Content-Type: application/json',
+            'X-Relay-Token: CHANGE_ME_STRONG_SHARED_SECRET' ,   // авторизация на релэе
         );
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
