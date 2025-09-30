@@ -38,9 +38,22 @@ class OpenAIClient
 
         $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
         $ch = curl_init($url);
+        if ($ch === false) {
+            throw new Exception('Не удалось инициализировать cURL.');
+        }
         $headers = array(
             'Content-Type: application/json'
         );
+
+        $previousExecutionLimitRaw = ini_get('max_execution_time');
+        $previousExecutionLimit = is_numeric($previousExecutionLimitRaw) ? (int)$previousExecutionLimitRaw : null;
+        $extendedExecutionLimit = (int)$this->timeout + (int)$this->connectTimeout + 30;
+        $executionLimitAdjusted = false;
+
+        if ($extendedExecutionLimit > 0) {
+            $result = @set_time_limit($extendedExecutionLimit);
+            $executionLimitAdjusted = ($result !== false);
+        }
 
         if (!empty($this->apiKey)) {
             $headers[] = 'Authorization: Bearer ' . $this->apiKey;
@@ -50,24 +63,35 @@ class OpenAIClient
             $headers[] = 'X-Relay-Token: ' . $this->relayToken;
         }
 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connectTimeout);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        $response = null;
+        $status = null;
 
-        $response = curl_exec($ch);
-        if ($response === false) {
-            $errorMessage = curl_error($ch);
-            $errorCode = curl_errno($ch);
-            curl_close($ch);
-            throw new Exception('Ошибка запроса: ' . ($errorMessage !== '' ? $errorMessage : 'неизвестная ошибка') . ' (код ' . $errorCode . ')');
+        try {
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connectTimeout);
+            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+            $response = curl_exec($ch);
+            if ($response === false) {
+                $errorMessage = curl_error($ch);
+                $errorCode = curl_errno($ch);
+                throw new Exception('Ошибка запроса: ' . ($errorMessage !== '' ? $errorMessage : 'неизвестная ошибка') . ' (код ' . $errorCode . ')');
+            }
+
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        } finally {
+            if (is_resource($ch) || (is_object($ch) && is_a($ch, 'CurlHandle'))) {
+                curl_close($ch);
+            }
+
+            if ($executionLimitAdjusted && $previousExecutionLimit !== null) {
+                @set_time_limit($previousExecutionLimit);
+            }
         }
-
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($status >= 400) {
             $decoded = json_decode($response, true);

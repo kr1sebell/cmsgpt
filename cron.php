@@ -14,7 +14,9 @@ $topicService = new TopicService();
 $articleService = new ArticleService();
 $openaiOptions = array(
     'base_url' => OPENAI_BASE_URL,
-    'relay_token' => OPENAI_RELAY_TOKEN
+    'relay_token' => OPENAI_RELAY_TOKEN,
+    'timeout' => OPENAI_TIMEOUT,
+    'connect_timeout' => OPENAI_CONNECT_TIMEOUT
 );
 $openaiClient = new OpenAIClient(OPENAI_API_KEY, $openaiOptions);
 $generator = new ArticleGenerator($openaiClient);
