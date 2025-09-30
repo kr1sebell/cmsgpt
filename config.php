@@ -65,6 +65,8 @@ define('DB_PASS', isset($ENV['DB_PASS']) ? $ENV['DB_PASS'] : '');
 define('OPENAI_API_KEY', isset($ENV['OPENAI_API_KEY']) ? $ENV['OPENAI_API_KEY'] : '');
 define('OPENAI_BASE_URL', isset($ENV['OPENAI_BASE_URL']) && trim($ENV['OPENAI_BASE_URL']) !== '' ? rtrim($ENV['OPENAI_BASE_URL'], '/') : 'https://api.openai.com/v1');
 define('OPENAI_RELAY_TOKEN', isset($ENV['OPENAI_RELAY_TOKEN']) ? $ENV['OPENAI_RELAY_TOKEN'] : '');
+define('OPENAI_TIMEOUT', (isset($ENV['OPENAI_TIMEOUT']) && is_numeric($ENV['OPENAI_TIMEOUT']) && (int)$ENV['OPENAI_TIMEOUT'] > 0) ? (int)$ENV['OPENAI_TIMEOUT'] : 120);
+define('OPENAI_CONNECT_TIMEOUT', (isset($ENV['OPENAI_CONNECT_TIMEOUT']) && is_numeric($ENV['OPENAI_CONNECT_TIMEOUT']) && (int)$ENV['OPENAI_CONNECT_TIMEOUT'] > 0) ? (int)$ENV['OPENAI_CONNECT_TIMEOUT'] : 30);
 define('BASE_URL', $baseUrl);
 define('ADMIN_LOGIN', isset($ENV['ADMIN_LOGIN']) ? $ENV['ADMIN_LOGIN'] : 'admin');
 define('ADMIN_PASSWORD', isset($ENV['ADMIN_PASSWORD']) ? $ENV['ADMIN_PASSWORD'] : 'admin');
