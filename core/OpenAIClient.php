@@ -3,47 +3,124 @@
 class OpenAIClient
 {
     protected $apiKey;
-//    protected $baseUrl = 'https://api.openai.com/v1';
-    protected $baseUrl = 'https://quick-donkey-55.deno.dev';
+    protected $baseUrl = 'https://api.openai.com/v1';
+    protected $relayToken = '';
+    protected $proxy = '';
+    protected $proxyAuth = '';
+    protected $proxyType = '';
+    protected $timeout = 120;
+    protected $connectTimeout = 30;
 
-    public function __construct($apiKey)
+    public function __construct($apiKey, $options = array())
     {
         $this->apiKey = $apiKey;
+
+        if (isset($options['base_url']) && trim($options['base_url']) !== '') {
+            $this->baseUrl = rtrim($options['base_url'], '/');
+        }
+
+        if (isset($options['relay_token'])) {
+            $this->relayToken = $options['relay_token'];
+        }
+
+        if (isset($options['proxy'])) {
+            $this->proxy = $options['proxy'];
+        }
+
+        if (isset($options['proxy_auth'])) {
+            $this->proxyAuth = $options['proxy_auth'];
+        }
+
+        if (isset($options['proxy_type'])) {
+            $this->proxyType = strtolower($options['proxy_type']);
+        }
+
+        if (isset($options['timeout']) && (int)$options['timeout'] > 0) {
+            $this->timeout = (int)$options['timeout'];
+        }
+
+        if (isset($options['connect_timeout']) && (int)$options['connect_timeout'] > 0) {
+            $this->connectTimeout = (int)$options['connect_timeout'];
+        }
     }
 
     protected function request($endpoint, $payload = array())
     {
-        if (empty($this->apiKey)) {
-            throw new Exception('Не задан ключ OpenAI API.');
+        if (empty($this->apiKey) && empty($this->relayToken)) {
+            throw new Exception('Не заданы реквизиты доступа к OpenAI.');
         }
 
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
         $ch = curl_init($url);
         $headers = array(
-//            'Authorization: Bearer ' . $this->apiKey,
-            'Content-Type: application/json',
-            'X-Relay-Token: CHANGE_ME_STRONG_SHARED_SECRET' ,   // авторизация на релэе
+            'Content-Type: application/json'
         );
+
+        if (!empty($this->apiKey)) {
+            $headers[] = 'Authorization: Bearer ' . $this->apiKey;
+        }
+
+        if (!empty($this->relayToken)) {
+            $headers[] = 'X-Relay-Token: ' . $this->relayToken;
+        }
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connectTimeout);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+        if (!empty($this->proxy)) {
+            curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
+
+            if (!empty($this->proxyAuth)) {
+                curl_setopt($ch, CURLOPT_PROXYUSERPWD, $this->proxyAuth);
+            }
+
+            $proxyType = $this->resolveProxyType($this->proxyType);
+            if ($proxyType !== null) {
+                curl_setopt($ch, CURLOPT_PROXYTYPE, $proxyType);
+            }
+        }
 
         $response = curl_exec($ch);
         if ($response === false) {
-            throw new Exception('Ошибка запроса: ' . curl_error($ch));
+            $errorMessage = curl_error($ch);
+            $errorCode = curl_errno($ch);
+            curl_close($ch);
+            throw new Exception('Ошибка запроса: ' . ($errorMessage !== '' ? $errorMessage : 'неизвестная ошибка') . ' (код ' . $errorCode . ')');
         }
 
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($status >= 400) {
-            throw new Exception('Ответ API: ' . $response);
+            $decoded = json_decode($response, true);
+            if (is_array($decoded) && isset($decoded['error']['message'])) {
+                throw new Exception('Ответ API (' . $status . '): ' . $decoded['error']['message']);
+            }
+
+            throw new Exception('Ответ API (' . $status . '): ' . $response);
         }
 
         return json_decode($response, true);
+    }
+
+    protected function resolveProxyType($type)
+    {
+        switch ($type) {
+            case 'socks4':
+                return CURLPROXY_SOCKS4;
+            case 'socks5':
+                return CURLPROXY_SOCKS5;
+            case 'http':
+            case 'https':
+                return CURLPROXY_HTTP;
+        }
+
+        return null;
     }
 
     public function generateArticle($prompt)
