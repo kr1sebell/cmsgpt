@@ -1,0 +1,22 @@
+# Включаем обработку ЧПУ и защищаем служебные каталоги
+Options -Indexes
+Options -MultiViews
+AddDefaultCharset utf-8
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Пропускаем существующие файлы и директории
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Перенаправляем все остальные запросы на фронтовой контроллер
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Если mod_rewrite недоступен, отдаём индексный файл
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.php
+</IfModule>

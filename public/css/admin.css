@@ -1,0 +1,83 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #f0f2f5;
+}
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.admin-header {
+    background: #1f2933;
+    color: #fff;
+    padding: 20px 0;
+}
+.admin-header nav a {
+    color: #fff;
+    margin-right: 15px;
+    text-decoration: none;
+}
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+.table th {
+    background: #f8f9fb;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.form-control, textarea, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.btn {
+    display: inline-block;
+    background: #007bff;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+.btn-secondary {
+    background: #6c757d;
+}
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #fff;
+}
+.status-badge.draft { background: #6c757d; }
+.status-badge.published { background: #28a745; }
+.status-badge.queue { background: #ffc107; color: #333; }
+.status-badge.done { background: #28a745; }
+.alert {
+    padding: 10px;
+    background: #eaf4ff;
+    border-left: 4px solid #007bff;
+    margin-bottom: 20px;
+}
