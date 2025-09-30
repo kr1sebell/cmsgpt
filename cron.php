@@ -12,7 +12,11 @@ function log_message($message)
 
 $topicService = new TopicService();
 $articleService = new ArticleService();
-$openaiClient = new OpenAIClient(OPENAI_API_KEY);
+$openaiOptions = array(
+    'base_url' => OPENAI_BASE_URL,
+    'relay_token' => OPENAI_RELAY_TOKEN
+);
+$openaiClient = new OpenAIClient(OPENAI_API_KEY, $openaiOptions);
 $generator = new ArticleGenerator($openaiClient);
 
 try {

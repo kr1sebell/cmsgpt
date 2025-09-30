@@ -63,6 +63,8 @@ define('DB_NAME', isset($ENV['DB_NAME']) ? $ENV['DB_NAME'] : 'project');
 define('DB_USER', isset($ENV['DB_USER']) ? $ENV['DB_USER'] : 'root');
 define('DB_PASS', isset($ENV['DB_PASS']) ? $ENV['DB_PASS'] : '');
 define('OPENAI_API_KEY', isset($ENV['OPENAI_API_KEY']) ? $ENV['OPENAI_API_KEY'] : '');
+define('OPENAI_BASE_URL', isset($ENV['OPENAI_BASE_URL']) && trim($ENV['OPENAI_BASE_URL']) !== '' ? rtrim($ENV['OPENAI_BASE_URL'], '/') : 'https://api.openai.com/v1');
+define('OPENAI_RELAY_TOKEN', isset($ENV['OPENAI_RELAY_TOKEN']) ? $ENV['OPENAI_RELAY_TOKEN'] : '');
 define('BASE_URL', $baseUrl);
 define('ADMIN_LOGIN', isset($ENV['ADMIN_LOGIN']) ? $ENV['ADMIN_LOGIN'] : 'admin');
 define('ADMIN_PASSWORD', isset($ENV['ADMIN_PASSWORD']) ? $ENV['ADMIN_PASSWORD'] : 'admin');

@@ -4,7 +4,11 @@ require_once __DIR__ . '/../config.php';
 $articleService = new ArticleService();
 $topicService = new TopicService();
 $settingService = new SettingService();
-$openaiClient = new OpenAIClient(OPENAI_API_KEY);
+$openaiOptions = array(
+    'base_url' => OPENAI_BASE_URL,
+    'relay_token' => OPENAI_RELAY_TOKEN
+);
+$openaiClient = new OpenAIClient(OPENAI_API_KEY, $openaiOptions);
 $generator = new ArticleGenerator($openaiClient);
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'articles';
