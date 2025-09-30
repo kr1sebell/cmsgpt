@@ -5,9 +5,6 @@ class OpenAIClient
     protected $apiKey;
     protected $baseUrl = 'https://api.openai.com/v1';
     protected $relayToken = '';
-    protected $proxy = '';
-    protected $proxyAuth = '';
-    protected $proxyType = '';
     protected $timeout = 120;
     protected $connectTimeout = 30;
 
@@ -21,18 +18,6 @@ class OpenAIClient
 
         if (isset($options['relay_token'])) {
             $this->relayToken = $options['relay_token'];
-        }
-
-        if (isset($options['proxy'])) {
-            $this->proxy = $options['proxy'];
-        }
-
-        if (isset($options['proxy_auth'])) {
-            $this->proxyAuth = $options['proxy_auth'];
-        }
-
-        if (isset($options['proxy_type'])) {
-            $this->proxyType = strtolower($options['proxy_type']);
         }
 
         if (isset($options['timeout']) && (int)$options['timeout'] > 0) {
@@ -72,19 +57,6 @@ class OpenAIClient
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connectTimeout);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
-        if (!empty($this->proxy)) {
-            curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
-
-            if (!empty($this->proxyAuth)) {
-                curl_setopt($ch, CURLOPT_PROXYUSERPWD, $this->proxyAuth);
-            }
-
-            $proxyType = $this->resolveProxyType($this->proxyType);
-            if ($proxyType !== null) {
-                curl_setopt($ch, CURLOPT_PROXYTYPE, $proxyType);
-            }
-        }
-
         $response = curl_exec($ch);
         if ($response === false) {
             $errorMessage = curl_error($ch);
@@ -106,21 +78,6 @@ class OpenAIClient
         }
 
         return json_decode($response, true);
-    }
-
-    protected function resolveProxyType($type)
-    {
-        switch ($type) {
-            case 'socks4':
-                return CURLPROXY_SOCKS4;
-            case 'socks5':
-                return CURLPROXY_SOCKS5;
-            case 'http':
-            case 'https':
-                return CURLPROXY_HTTP;
-        }
-
-        return null;
     }
 
     public function generateArticle($prompt)

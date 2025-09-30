@@ -6,10 +6,7 @@ $topicService = new TopicService();
 $settingService = new SettingService();
 $openaiOptions = array(
     'base_url' => OPENAI_BASE_URL,
-    'relay_token' => OPENAI_RELAY_TOKEN,
-    'proxy' => OPENAI_PROXY,
-    'proxy_auth' => OPENAI_PROXY_AUTH,
-    'proxy_type' => OPENAI_PROXY_TYPE
+    'relay_token' => OPENAI_RELAY_TOKEN
 );
 $openaiClient = new OpenAIClient(OPENAI_API_KEY, $openaiOptions);
 $generator = new ArticleGenerator($openaiClient);
