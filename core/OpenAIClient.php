@@ -108,12 +108,15 @@ class OpenAIClient
     public function generateArticle($prompt)
     {
         $payload = array(
-            'model' => 'gpt-3.5-turbo',
+            'model' => 'gpt-4.1-nano',
+//            'model' => 'gpt-3.5-turbo',
             'messages' => array(
                 array('role' => 'system', 'content' => 'Ты профессиональный русскоязычный SEO-копирайтер.'),
                 array('role' => 'user', 'content' => $prompt)
             ),
-            'temperature' => 0.7
+            'temperature' => 0.7,
+            'max_tokens' => 1600,
+            'stream' => false
         );
 
         $response = $this->request('/chat/completions', $payload);
@@ -123,6 +126,8 @@ class OpenAIClient
 
         $content = $response['choices'][0]['message']['content'];
         $json = json_decode($content, true);
+        error_log($content."\n\n", 3, $_SERVER['DOCUMENT_ROOT'].'/logs/log'.date("d.m.y").'.txt');
+
         if (!$json) {
             throw new Exception('Не удалось распарсить JSON: ' . $content);
         }
@@ -141,8 +146,11 @@ class OpenAIClient
             'size' => '1024x1024',
             'response_format' => 'b64_json'
         );
+        error_log("Пытаемся сделать картинку \n\n", 3, $_SERVER['DOCUMENT_ROOT'].'/logs/logIMG'.date("d.m.y").'.txt');
 
         $response = $this->request('/images/generations', $payload);
+        error_log(print_r($response, true), 3, $_SERVER['DOCUMENT_ROOT'].'/logs/logIMG'.date("d.m.y").'.txt');
+
         if (isset($response['data'][0]['b64_json'])) {
             return base64_decode($response['data'][0]['b64_json']);
         }

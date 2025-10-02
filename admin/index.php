@@ -237,6 +237,29 @@ switch ($action) {
         }
         try {
             $data = $generator->createFromTopic($topic);
+
+            $body = '';
+            if (isset($data['body'])) {
+                if (is_array($data['body'])) {
+                    foreach ($data['body'] as $block) {
+                        switch ($block['type']) {
+                            case 'h2':
+                                $body .= '<h2>' . Helpers::e($block['content']) . '</h2>';
+                                break;
+                            case 'h3':
+                                $body .= '<h3>' . Helpers::e($block['content']) . '</h3>';
+                                break;
+                            case 'paragraph':
+                                $body .= '<p>' . Helpers::e($block['content']) . '</p>';
+                                break;
+                            default:
+                                $body .= '<p>' . Helpers::e($block['content']) . '</p>';
+                        }
+                    }
+                } elseif (is_string($data['body'])) {
+                    $body = $data['body'];
+                }
+            }
             $articleData = array(
                 'title' => $data['title'],
                 'meta_description' => isset($data['meta_description']) ? $data['meta_description'] : '',
@@ -247,25 +270,30 @@ switch ($action) {
             );
             $articleData['slug'] = $articleService->generateSlug($articleData['title']);
 
-            $imagePrompt = isset($data['suggested_image_prompt']) ? $data['suggested_image_prompt'] : '';
-            if ($imagePrompt) {
-                try {
-                    $imageData = $openaiClient->generateImage($imagePrompt);
-                    if ($imageData) {
-                        $filename = uniqid('img_') . '.png';
-                        file_put_contents(UPLOADS_PATH . '/' . $filename, $imageData);
-                        $articleData['image'] = $filename;
-                    }
-                } catch (Exception $e) {
-                    // игнорируем ошибки генерации изображений
-                }
-            }
+//            $imagePrompt = isset($data['suggested_image_prompt']) ? $data['suggested_image_prompt'] : '';
+//            if ($imagePrompt) {
+//                try {
+//                    $imageData = $openaiClient->generateImage($imagePrompt);
+//                    if ($imageData) {
+//                        $filename = uniqid('img_') . '.png';
+//                        file_put_contents(UPLOADS_PATH . '/' . $filename, $imageData);
+//                        $articleData['image'] = $filename;
+//                    }
+//                } catch (Exception $e) {
+//                    // игнорируем ошибки генерации изображений
+//                }
+//            }else{
+//                error_log("Картинки не будет \n\n", 3, $_SERVER['DOCUMENT_ROOT'].'/logs/logIMG'.date("d.m.y").'.txt');
+//            }
 
             $articleId = $articleService->save($articleData);
             $topicService->markDone($topic['id']);
             Helpers::redirect('/admin/?action=edit_article&id=' . $articleId);
         } catch (Exception $e) {
-            Helpers::redirect('/admin/?action=generator&message=' . urlencode($e->getMessage()));
+            error_log((string)$e);
+            $shortMsg = mb_substr($e->getMessage(), 0, 200);
+            Helpers::redirect('/admin/?action=generator&message=' . urlencode($shortMsg));
+//            Helpers::redirect('/admin/?action=generator&message=' . urlencode($e->getMessage()));
         }
         break;
 
